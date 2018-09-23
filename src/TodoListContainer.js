@@ -1,22 +1,29 @@
 import React, { Component } from 'react';
 //import Todo from './Todo';
 import TodoList from './TodoList';
+import TodoEntry from './TodoEntry';
 
  class TodoListContainer extends Component{
     constructor(props) {
         super(props)
         this.state = {error: null,
         isLoaded: false,
-            todos: []
+            todos: [],
+            todoDescription:""
         }
         this.handleDelete = this.handleDelete.bind(this);
+        this.handleAdd = this.handleAdd.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
     }
     
     componentDidMount(){
  this.fetchTodos();
 }
+
+
 fetchTodos() {
-  let url = 'http://localhost:3001/todos';
+  const url = 'http://localhost:3000/todos';
   fetch(url)
 .then(response => response.json())
 .then(
@@ -35,11 +42,36 @@ error
 });
 })
 }
-
+handleChange(e){
+const description = e.target.value;
+this.setState({todoDescription: description});
+console.log(this.state.todoDescription);
+}
+handleAdd(e){
+  e.preventDefault();
+  const url = 'http://localhost:3000/addtodo';
+  const description = this.state.todoDescription;
+  console.log(JSON.stringify({description: description}));
+  fetch(url, {
+      method: "POST",
+      headers:{
+      'Accept': 'application/json',
+      'Content-Type': "application/json"
+      },body: JSON.stringify({description: description, completed: 0})
+  }).then(res => res.json())
+  .catch(error => console.error('Error:', error))
+  .then((response) => {
+  console.log('Successful:', response);});
+}
+handleSubmit(e){
+  e.preventDefault();
+  this.handleAdd(e);
+  this.fetchTodos();
+}
 handleDelete(id, e){
   console.log('this is:', this);
- // console.log("id: " + id);
- console.log("e" + e);
+
+
  
   e.preventDefault();
   let url = 'http://localhost:3000/deletetodo';
@@ -55,7 +87,7 @@ handleDelete(id, e){
   .catch(error => console.error('Error:', error))
   .then((response) => {
   console.log('Successful:', response);
- // console.log('about to fetch todos');
+
  
 });
 console.log("do we state???");
@@ -72,6 +104,7 @@ render() {
     } else {
       return (
         <div>
+        <TodoEntry handleSubmit={this.handleSubmit} handleAdd={this.handleAdd} todoDescription={this.state.todoDescription} handleChange={this.handleChange}/>
           <TodoList todos={this.state.todos} handleDelete={this.handleDelete}/>
         </div>
       );
